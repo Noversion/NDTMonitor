@@ -1,0 +1,31 @@
+﻿#include "serversettingblk.h"
+#include "ui_serversettingblk.h"
+
+#include <QMessageBox>
+
+serverSettingBlk::serverSettingBlk(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::serverSettingBlk),
+    hdDatSvr(new QTcpServer())
+{
+    ui->setupUi(this);
+}
+
+serverSettingBlk::~serverSettingBlk()
+{
+    delete ui;
+}
+
+void serverSettingBlk::on_startServerBtn_clicked()
+{
+    if(!hdDatSvr->listen(QHostAddress::Any, 8888)){
+        QMessageBox::critical(this, tr("server"), tr("failed to start: %1.").arg(hdDatSvr->errorString()));
+        close();
+        return;
+    }
+    connect(hdDatSvr, &QTcpServer::newConnection, this, [=]{
+        hdDatThd = new myTcpServer(hdDatSvr);
+        //启动子线程
+        hdDatThd->start();
+      });
+}
